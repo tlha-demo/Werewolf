@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>WolfTalk MVP</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#0B1120;color:#F8FAFC}
+.screen{display:none;min-height:100vh;padding:24px}
+.active{display:block}
+.card{background:#172033;padding:20px;border-radius:16px;max-width:700px;margin:auto;box-shadow:0 0 20px rgba(0,0,0,.4)}
+h1,h2{text-align:center}
+button{background:#7C3AED;color:white;border:none;padding:12px 18px;border-radius:10px;cursor:pointer;margin:5px}
+input{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #333}
+.player{padding:8px;background:#1f2a44;margin:5px 0;border-radius:8px}
+.role{font-size:28px;text-align:center}
+</style>
+</head>
+<body>
+
+<div id="home" class="screen active">
+<div class="card">
+<h1>🐺 WolfTalk</h1>
+<p style="text-align:center">A social deduction game for English Clubs</p>
+<button onclick="show('create')">Create Room</button>
+<button onclick="show('join')">Join Room</button>
+</div>
+</div>
+
+<div id="create" class="screen">
+<div class="card">
+<h2>Create Room</h2>
+<input id="roomName" placeholder="Room Name">
+<button onclick="createRoom()">Create</button>
+</div>
+</div>
+
+<div id="join" class="screen">
+<div class="card">
+<h2>Join Room</h2>
+<input id="nickname" placeholder="Nickname">
+<input id="joinCode" placeholder="Room Code">
+<button onclick="joinRoom()">Join</button>
+</div>
+</div>
+
+<div id="lobby" class="screen">
+<div class="card">
+<h2>Lobby</h2>
+<p>Room Code: <b id="roomCode"></b></p>
+<div id="players"></div>
+<button onclick="startGame()">Start Game</button>
+</div>
+</div>
+
+<div id="roleScreen" class="screen">
+<div class="card">
+<h2>Your Role</h2>
+<div id="role" class="role"></div>
+<p id="roleDesc"></p>
+<button onclick="show('day')">I Understand</button>
+</div>
+</div>
+
+<div id="day" class="screen">
+<div class="card">
+<h2>☀ DAY 1</h2>
+<p>Discuss with other players.</p>
+<button onclick="show('vote')">Open Vote</button>
+</div>
+</div>
+
+<div id="vote" class="screen">
+<div class="card">
+<h2>Vote</h2>
+<div id="voteList"></div>
+<button onclick="submitVote()">Submit Vote</button>
+</div>
+</div>
+
+<div id="result" class="screen">
+<div class="card">
+<h2>Result</h2>
+<p id="resultText"></p>
+<button onclick="show('home')">Back Home</button>
+</div>
+</div>
+
+<script>
+const roles=[
+{name:"🐺 WEREWOLF",desc:"Choose one player to kill each night."},
+{name:"🔮 SEER",desc:"Check one player each night."},
+{name:"❤️ DOCTOR",desc:"Save one player each night."},
+{name:"👨 VILLAGER",desc:"Find the wolves."}
+];
+
+function show(id){
+document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+}
+
+function createRoom(){
+const code=Math.random().toString(36).substring(2,7).toUpperCase();
+localStorage.setItem('roomCode',code);
+localStorage.setItem('players',JSON.stringify(["Host"]));
+document.getElementById('roomCode').innerText=code;
+renderPlayers();
+show('lobby');
+}
+
+function joinRoom(){
+let name=document.getElementById('nickname').value||"Player";
+let players=JSON.parse(localStorage.getItem('players')||"[]");
+players.push(name);
+localStorage.setItem('players',JSON.stringify(players));
+document.getElementById('roomCode').innerText=localStorage.getItem('roomCode')||"DEMO";
+renderPlayers();
+show('lobby');
+}
+
+function renderPlayers(){
+let players=JSON.parse(localStorage.getItem('players')||"[]");
+document.getElementById('players').innerHTML=players.map(p=>`<div class="player">${p}</div>`).join('');
+}
+
+function startGame(){
+const r=roles[Math.floor(Math.random()*roles.length)];
+document.getElementById('role').innerText=r.name;
+document.getElementById('roleDesc').innerText=r.desc;
+let players=JSON.parse(localStorage.getItem('players')||"[]");
+document.getElementById('voteList').innerHTML=players.map(p=>`<label><input type='radio' name='v' value='${p}'> ${p}</label><br>`).join('');
+show('roleScreen');
+}
+
+function submitVote(){
+let selected=document.querySelector("input[name='v']:checked");
+document.getElementById('resultText').innerText=selected ? selected.value+" was eliminated." : "No vote selected.";
+show('result');
+}
+</script>
+</body>
+</html>
