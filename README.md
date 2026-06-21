@@ -1,0 +1,2 @@
+# Werewolf
+Game for EC
